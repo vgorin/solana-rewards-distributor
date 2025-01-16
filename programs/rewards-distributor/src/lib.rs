@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use anchor_lang::solana_program::hash::HASH_BYTES;
 
 use instructions::*;
 
@@ -16,11 +17,11 @@ pub mod rewards_distributor {
         handle_initialize(ctx, updater)
     }
 
-    pub fn claim(ctx: Context<Claim>, amount: u64, proof: Vec<[u8; 32]>) -> Result<()> {
+    pub fn claim(ctx: Context<Claim>, amount: u64, proof: Vec<[u8; HASH_BYTES]>) -> Result<()> {
         ctx.accounts.handle_claim(amount, proof)
     }
 
-    pub fn update_root(ctx: Context<UpdateRoot>, new_root: [u8; 32]) -> Result<()> {
+    pub fn update_root(ctx: Context<UpdateRoot>, new_root: [u8; HASH_BYTES]) -> Result<()> {
         ctx.accounts.handle_update_root(new_root)
     }
 

@@ -1,5 +1,8 @@
 use anchor_lang::{
-    prelude::*, solana_program::hash::hashv, system_program::System, Accounts, Key, Result,
+    prelude::*,
+    solana_program::hash::{hashv, HASH_BYTES},
+    system_program::System,
+    Accounts, Key, Result,
 };
 use anchor_spl::{
     token,
@@ -40,7 +43,7 @@ pub struct Claim<'info> {
 }
 
 impl<'info> Claim<'info> {
-    pub fn handle_claim(&self, amount: u64, proof: Vec<[u8; 32]>) -> Result<()> {
+    pub fn handle_claim(&self, amount: u64, proof: Vec<[u8; HASH_BYTES]>) -> Result<()> {
         require!(!self.config.shutdown, ErrorCode::Shutdown);
 
         // TODO get from storage
@@ -72,7 +75,7 @@ impl<'info> Claim<'info> {
         Ok(())
     }
 
-    fn verify_proof(&self, input: [u8; 32], proof: &Vec<[u8; 32]>) -> bool {
+    fn verify_proof(&self, input: [u8; HASH_BYTES], proof: &Vec<[u8; HASH_BYTES]>) -> bool {
         proof.iter().fold(input, |acc, sibling| {
             if acc <= *sibling {
                 hashv(&[&acc, sibling]).to_bytes()

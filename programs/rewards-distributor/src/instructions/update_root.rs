@@ -1,3 +1,4 @@
+use anchor_lang::solana_program::hash::HASH_BYTES;
 use anchor_lang::{prelude::*, Accounts, Key, Result};
 
 use crate::error::ErrorCode;
@@ -17,7 +18,7 @@ pub struct UpdateRoot<'info> {
 }
 
 impl<'info> UpdateRoot<'info> {
-    pub fn handle_update_root(&mut self, new_root: [u8; 32]) -> Result<()> {
+    pub fn handle_update_root(&mut self, new_root: [u8; HASH_BYTES]) -> Result<()> {
         require!(self.config.root != new_root, ErrorCode::SameValue);
 
         self.config.root = new_root;

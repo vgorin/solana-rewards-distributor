@@ -1,4 +1,7 @@
-use anchor_lang::{account, context::Context, prelude::*, Accounts, Key, ToAccountInfo};
+use anchor_lang::{
+    account, context::Context, prelude::*, solana_program::hash::HASH_BYTES, Accounts, Key,
+    ToAccountInfo,
+};
 use anchor_spl::{
     associated_token::AssociatedToken,
     token::{Mint, Token, TokenAccount},
@@ -38,7 +41,7 @@ pub struct Initialize<'info> {
 pub fn handle_initialize(ctx: Context<Initialize>, updater: Pubkey) -> Result<()> {
     let accounts = ctx.accounts;
     accounts.config.bump = ctx.bumps.config;
-    accounts.config.root = [0; 32];
+    accounts.config.root = [0; HASH_BYTES];
     accounts.config.mint = accounts.mint.key();
     accounts.config.token_vault = accounts.token_vault.key();
     accounts.config.admin = accounts.admin.key();
