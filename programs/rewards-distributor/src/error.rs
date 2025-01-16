@@ -4,6 +4,8 @@ use anchor_lang::error_code;
 pub enum ErrorCode {
     #[msg("Rewards were already claimed")]
     AlreadyClaimed,
+    #[msg("Not enough token balance to pay rewards")]
+    InsufficientBalance,
     #[msg("Invalid Merkle proof")]
     InvalidProof,
     #[msg("Account is not authorized to execute this instruction")]

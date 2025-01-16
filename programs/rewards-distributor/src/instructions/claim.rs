@@ -43,19 +43,22 @@ pub struct Claim<'info> {
 }
 
 impl<'info> Claim<'info> {
-    pub fn handle_claim(&self, amount: u64, proof: Vec<[u8; HASH_BYTES]>) -> Result<()> {
+    pub fn handle_claim(&self, total_amount: u64, proof: Vec<[u8; HASH_BYTES]>) -> Result<()> {
         require!(!self.config.shutdown, ErrorCode::Shutdown);
 
         // TODO get from storage
         let already_claimed = 0;
 
-        require_gt!(amount, already_claimed, ErrorCode::AlreadyClaimed);
+        require_gt!(total_amount, already_claimed, ErrorCode::AlreadyClaimed);
 
-        let input = hashv(&[&self.claimant.key.to_bytes(), &amount.to_be_bytes()]);
+        let input = hashv(&[&self.claimant.key.to_bytes(), &total_amount.to_be_bytes()]);
         require!(
             self.verify_proof(input.to_bytes(), &proof),
             ErrorCode::InvalidProof
         );
+
+        let amount = total_amount - already_claimed;
+        require_gte!(self.from.amount, amount, ErrorCode::InsufficientBalance);
 
         let seeds = [DistributorConfig::SEED.as_ref(), &[self.config.bump]];
 
@@ -69,10 +72,8 @@ impl<'info> Claim<'info> {
                 },
             )
             .with_signer(&[&seeds[..]]),
-            amount - already_claimed,
-        )?;
-
-        Ok(())
+            amount,
+        )
     }
 
     fn verify_proof(&self, input: [u8; HASH_BYTES], proof: &Vec<[u8; HASH_BYTES]>) -> bool {

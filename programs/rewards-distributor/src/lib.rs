@@ -17,8 +17,12 @@ pub mod rewards_distributor {
         handle_initialize(ctx, updater)
     }
 
-    pub fn claim(ctx: Context<Claim>, amount: u64, proof: Vec<[u8; HASH_BYTES]>) -> Result<()> {
-        ctx.accounts.handle_claim(amount, proof)
+    pub fn claim(
+        ctx: Context<Claim>,
+        total_amount: u64,
+        proof: Vec<[u8; HASH_BYTES]>,
+    ) -> Result<()> {
+        ctx.accounts.handle_claim(total_amount, proof)
     }
 
     pub fn update_root(ctx: Context<UpdateRoot>, new_root: [u8; HASH_BYTES]) -> Result<()> {
