@@ -1,5 +1,6 @@
 use anchor_lang::{prelude::*, Accounts, Key, Result};
 
+use crate::error::ErrorCode;
 use crate::state::distributor_config::DistributorConfig;
 
 #[derive(Accounts)]
@@ -11,13 +12,13 @@ pub struct SetUpdater<'info> {
     )]
     pub config: Account<'info, DistributorConfig>,
 
-    #[account(mut, address = config.admin)]
+    #[account(mut, address = config.admin @ ErrorCode::Unauthorized)]
     pub admin: Signer<'info>,
 }
 
 impl<'info> SetUpdater<'info> {
     pub fn handle_set_updater(&mut self, new_updater: Pubkey) -> Result<()> {
-        require_keys_neq!(new_updater, self.config.updater.key());
+        require_keys_neq!(new_updater, self.config.updater.key(), ErrorCode::SameValue);
 
         self.config.updater = new_updater;
 

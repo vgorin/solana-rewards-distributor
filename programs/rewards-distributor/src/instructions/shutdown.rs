@@ -4,6 +4,7 @@ use anchor_spl::{
     token::{Token, TokenAccount},
 };
 
+use crate::error::ErrorCode;
 use crate::state::distributor_config::DistributorConfig;
 
 #[derive(Accounts)]
@@ -30,7 +31,7 @@ pub struct Shutdown<'info> {
     )]
     pub to: Account<'info, TokenAccount>,
 
-    #[account(mut, address = config.admin)]
+    #[account(mut, address = config.admin @ ErrorCode::Unauthorized)]
     pub admin: Signer<'info>,
 
     pub token_program: Program<'info, Token>,

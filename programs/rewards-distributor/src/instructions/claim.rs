@@ -6,6 +6,7 @@ use anchor_spl::{
     token::{Token, TokenAccount},
 };
 
+use crate::error::ErrorCode;
 use crate::state::distributor_config::DistributorConfig;
 
 #[derive(Accounts)]
@@ -40,15 +41,18 @@ pub struct Claim<'info> {
 
 impl<'info> Claim<'info> {
     pub fn handle_claim(&self, amount: u64, proof: Vec<[u8; 32]>) -> Result<()> {
-        // require!(!self.config.shutdown);
+        require!(!self.config.shutdown, ErrorCode::Shutdown);
 
         // TODO get from storage
         let already_claimed = 0;
 
-        require_gt!(amount, already_claimed);
+        require_gt!(amount, already_claimed, ErrorCode::AlreadyClaimed);
 
         let input = hashv(&[&self.claimant.key.to_bytes(), &amount.to_be_bytes()]);
-        require_eq!(self.verify_proof(input.to_bytes(), &proof), true);
+        require!(
+            self.verify_proof(input.to_bytes(), &proof),
+            ErrorCode::InvalidProof
+        );
 
         let seeds = [DistributorConfig::SEED.as_ref(), &[self.config.bump]];
 
