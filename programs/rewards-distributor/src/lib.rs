@@ -1,17 +1,21 @@
 use anchor_lang::prelude::*;
 
-declare_id!("3UzMu6EhgnZMg95WpyDLA6JJPho2YEW7QF3sNcv4Zi8K");
+use instructions::*;
 
+mod instructions;
+mod state;
+
+declare_id!("3UzMu6EhgnZMg95WpyDLA6JJPho2YEW7QF3sNcv4Zi8K");
 
 #[program]
 pub mod rewards_distributor {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        msg!("Greetings from: {:?}", ctx.program_id);
-        Ok(())
+    pub fn initialize(ctx: Context<Initialize>, updater: Pubkey) -> Result<()> {
+        handle_initialize(ctx, updater)
+    }
+
+    pub fn claim(ctx: Context<Claim>, amount: u64, proof: Vec<[u8; 32]>) -> Result<()> {
+        ctx.accounts.handle_claim(amount, proof)
     }
 }
-
-#[derive(Accounts)]
-pub struct Initialize {}
