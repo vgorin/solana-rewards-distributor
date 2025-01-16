@@ -1,6 +1,4 @@
-use anchor_lang::{
-    prelude::*, solana_program::hash::hashv, system_program::System, Accounts, Key, Result,
-};
+use anchor_lang::{prelude::*, Accounts, Key, Result};
 use anchor_spl::{
     token,
     token::{Token, TokenAccount},
@@ -9,10 +7,11 @@ use anchor_spl::{
 use crate::state::distributor_config::DistributorConfig;
 
 #[derive(Accounts)]
-pub struct Claim<'info> {
+pub struct Shutdown<'info> {
     #[account(
+        mut,
         seeds = [DistributorConfig::SEED.as_ref()],
-        bump,
+        bump = config.bump,
     )]
     pub config: Account<'info, DistributorConfig>,
 
@@ -27,28 +26,20 @@ pub struct Claim<'info> {
     #[account(
         mut,
         token::mint = config.mint,
-        token::authority = claimant.key(),
+        token::authority = config.admin,
     )]
     pub to: Account<'info, TokenAccount>,
 
-    #[account(mut)]
-    pub claimant: Signer<'info>,
+    #[account(mut, address = config.admin)]
+    pub admin: Signer<'info>,
 
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
 }
 
-impl<'info> Claim<'info> {
-    pub fn handle_claim(&self, amount: u64, proof: Vec<[u8; 32]>) -> Result<()> {
-        // require!(!self.config.shutdown);
-
-        // TODO get from storage
-        let already_claimed = 0;
-
-        require_gt!(amount, already_claimed);
-
-        let input = hashv(&[&self.claimant.key.to_bytes(), &amount.to_be_bytes()]);
-        require_eq!(self.verify_proof(input.to_bytes(), &proof), true);
+impl<'info> Shutdown<'info> {
+    pub fn handle_shutdown(&mut self) -> Result<()> {
+        self.config.shutdown = true;
 
         let seeds = [DistributorConfig::SEED.as_ref(), &[self.config.bump]];
 
@@ -62,19 +53,9 @@ impl<'info> Claim<'info> {
                 },
             )
             .with_signer(&[&seeds[..]]),
-            amount - already_claimed,
+            self.from.amount,
         )?;
 
         Ok(())
-    }
-
-    fn verify_proof(&self, input: [u8; 32], proof: &Vec<[u8; 32]>) -> bool {
-        proof.iter().fold(input, |acc, sibling| {
-            if acc <= *sibling {
-                hashv(&[&acc, sibling]).to_bytes()
-            } else {
-                hashv(&[sibling, &acc]).to_bytes()
-            }
-        }) == self.config.root
     }
 }

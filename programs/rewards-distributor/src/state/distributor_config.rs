@@ -12,6 +12,7 @@ pub struct DistributorConfig {
     pub token_vault: Pubkey,
     pub admin: Pubkey,
     pub updater: Pubkey,
+    pub shutdown: bool,
 }
 
 impl DistributorConfig {

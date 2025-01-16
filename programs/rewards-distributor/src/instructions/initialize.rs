@@ -13,7 +13,7 @@ pub struct Initialize<'info> {
         seeds = [DistributorConfig::SEED.as_ref()],
         bump,
         space = DistributorConfig::LEN,
-        payer = admin
+        payer = admin,
     )]
     pub config: Account<'info, DistributorConfig>,
 
@@ -43,6 +43,7 @@ pub fn handle_initialize(ctx: Context<Initialize>, updater: Pubkey) -> Result<()
     accounts.config.token_vault = accounts.token_vault.key();
     accounts.config.admin = accounts.admin.key();
     accounts.config.updater = updater;
+    accounts.config.shutdown = false;
 
     Ok(())
 }
