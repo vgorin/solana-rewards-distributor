@@ -8,6 +8,7 @@ export enum ErrorCode {
 }
 
 export const DISTRIBUTOR_CONFIG_SEED: Buffer = Buffer.from('DistributorConfig');
+export const CLAIMED_REWARDS_SEED: Buffer = Buffer.from('ClaimedRewards');
 
 export const DEFAULT_TOKEN_DECIMALS: number = 6;
 

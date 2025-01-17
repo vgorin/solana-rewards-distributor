@@ -6,6 +6,7 @@ import { getAccount, getAssociatedTokenAddress } from '@solana/spl-token';
 import { expect } from 'chai';
 import { expectRevert, requestSolana, initializeATA } from './shared/transactions';
 import {
+    CLAIMED_REWARDS_SEED,
     DISTRIBUTOR_CONFIG_SEED,
     ELIGIBLE_USER_AMOUNT,
     ELIGIBLE_USER_PK,
@@ -18,10 +19,10 @@ describe('Rewards distributor Claim', () => {
 
     const program = anchor.workspace.RewardsDistributor as Program<RewardsDistributor>;
     const config = program.account.distributorConfig;
+    const claimedRewards = program.account.claimedRewards;
     const [configPda] = PublicKey.findProgramAddressSync([DISTRIBUTOR_CONFIG_SEED], program.programId);
 
     const user = Keypair.fromSecretKey(ELIGIBLE_USER_PK);
-    console.log(user.publicKey.toBase58());
     const userIneligible = Keypair.generate();
     let mint: PublicKey;
     let userATA: PublicKey;
@@ -51,6 +52,10 @@ describe('Rewards distributor Claim', () => {
 
         const userBalanceAfter = (await getAccount(connection, userATA)).amount;
         expect(userBalanceAfter - userBalanceBefore).to.be.eq(BigInt(ELIGIBLE_USER_AMOUNT));
+
+        const [claimedRewardsPda] = PublicKey.findProgramAddressSync([CLAIMED_REWARDS_SEED, user.publicKey.toBuffer()], program.programId);
+        const claimedRewardsData = await claimedRewards.fetch(claimedRewardsPda);
+        expect(claimedRewardsData.claimed.eq(new BN(ELIGIBLE_USER_AMOUNT))).to.be.true;
     });
 
     it('Claim, InvalidProof', async () => {

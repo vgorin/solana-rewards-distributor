@@ -9,8 +9,8 @@ use anchor_spl::{
     token::{Token, TokenAccount},
 };
 
-use crate::error::ErrorCode;
 use crate::state::distributor_config::DistributorConfig;
+use crate::{error::ErrorCode, state::claimed_rewards::ClaimedRewards};
 
 #[derive(Accounts)]
 pub struct Claim<'info> {
@@ -19,6 +19,15 @@ pub struct Claim<'info> {
         bump,
     )]
     pub config: Account<'info, DistributorConfig>,
+
+    #[account(
+        init_if_needed,
+        payer = claimant,
+        seeds = [ClaimedRewards::SEED.as_ref(), claimant.key().to_bytes().as_ref()],
+        bump,
+        space = 8 + ClaimedRewards::LEN
+    )]
+    pub claimed_rewards: Account<'info, ClaimedRewards>,
 
     #[account(
         mut,
@@ -43,25 +52,25 @@ pub struct Claim<'info> {
 }
 
 impl<'info> Claim<'info> {
-    pub fn handle_claim(&self, total_amount: u64, proof: Vec<[u8; HASH_BYTES]>) -> Result<()> {
+    pub fn handle_claim(&mut self, total_amount: u64, proof: Vec<[u8; HASH_BYTES]>) -> Result<()> {
         require!(!self.config.shutdown, ErrorCode::Shutdown);
 
-        // TODO get from storage
-        let already_claimed = 0;
+        let already_claimed = self.claimed_rewards.claimed;
 
         require_gt!(total_amount, already_claimed, ErrorCode::AlreadyClaimed);
 
         let input = hashv(&[&self.claimant.key.to_bytes(), &total_amount.to_be_bytes()]);
         require!(
-            self.verify_proof(&input.to_bytes(), &proof),
+            self.verify_proof(input.to_bytes(), &proof),
             ErrorCode::InvalidProof
         );
 
         let amount = total_amount - already_claimed;
         require_gte!(self.from.amount, amount, ErrorCode::InsufficientBalance);
 
-        let seeds = [DistributorConfig::SEED.as_ref(), &[self.config.bump]];
+        self.claimed_rewards.claimed = total_amount;
 
+        let seeds = [DistributorConfig::SEED.as_ref(), &[self.config.bump]];
         token::transfer(
             CpiContext::new(
                 self.token_program.to_account_info(),
@@ -76,8 +85,8 @@ impl<'info> Claim<'info> {
         )
     }
 
-    fn verify_proof(&self, input: &[u8], proof: &Vec<[u8; HASH_BYTES]>) -> bool {
-        let double_hashing = hashv(&[input]).to_bytes();
+    fn verify_proof(&self, input: [u8; HASH_BYTES], proof: &Vec<[u8; HASH_BYTES]>) -> bool {
+        let double_hashing = hashv(&[&input]).to_bytes();
         proof.iter().fold(double_hashing, |acc, sibling| {
             if acc <= *sibling {
                 hashv(&[&acc, sibling]).to_bytes()
