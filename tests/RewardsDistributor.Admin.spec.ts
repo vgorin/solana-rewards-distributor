@@ -2,10 +2,17 @@ import * as anchor from '@coral-xyz/anchor';
 import { Program } from '@coral-xyz/anchor';
 import { RewardsDistributor } from '../target/types/rewards_distributor';
 import { Keypair, PublicKey } from '@solana/web3.js';
-import { getAssociatedTokenAddress } from '@solana/spl-token';
+import { getAccount, getAssociatedTokenAddress } from '@solana/spl-token';
 import { expect } from 'chai';
-import { expectRevert, createTokenMint, requestSolana } from './shared/transactions';
-import { DISTRIBUTOR_CONFIG_SEED, ErrorCode } from './shared/consts';
+import {
+    expectRevert,
+    createTokenMint,
+    requestSolana,
+    initializeATA,
+    mintTokenTo,
+    transferTokens,
+} from './shared/transactions';
+import { DISTRIBUTOR_CONFIG_SEED, ELIGIBLE_USER_AMOUNT, ErrorCode, MERKLE_ROOT } from './shared/consts';
 
 describe('Rewards distributor Admin', () => {
     anchor.setProvider(anchor.AnchorProvider.env());
@@ -16,7 +23,7 @@ describe('Rewards distributor Admin', () => {
     const config = program.account.distributorConfig;
     const [configPda] = PublicKey.findProgramAddressSync([DISTRIBUTOR_CONFIG_SEED], program.programId);
 
-    let admin = Keypair.generate();
+    const admin = Keypair.generate();
     const updater = Keypair.generate();
     const unauthorized = Keypair.generate();
     let mint: PublicKey;
@@ -25,7 +32,10 @@ describe('Rewards distributor Admin', () => {
         await requestSolana(connection, 1000, admin.publicKey);
         await requestSolana(connection, 1000, updater.publicKey);
         await requestSolana(connection, 1000, unauthorized.publicKey);
+
         mint = await createTokenMint(connection, admin);
+        await initializeATA(anchor.getProvider(), admin, mint);
+        await mintTokenTo(connection, admin, mint, admin.publicKey, ELIGIBLE_USER_AMOUNT * 10);
     });
 
     it('Initialize', async () => {
@@ -51,8 +61,19 @@ describe('Rewards distributor Admin', () => {
         expect(configData.shutdown).to.be.eq(false);
     });
 
+    it('Add funds', async () => {
+        const vault = await getAssociatedTokenAddress(mint, configPda, true);
+        const balanceBefore = (await getAccount(connection, vault)).amount;
+
+        const transferAmount = ELIGIBLE_USER_AMOUNT * 10;
+        await transferTokens(anchor.getProvider(), mint, admin, vault, transferAmount);
+
+        const balanceAfter = (await getAccount(connection, vault)).amount;
+        expect(balanceAfter - balanceBefore).to.be.eq(BigInt(transferAmount));
+    });
+
     it('Update root', async () => {
-        const newRoot = Array.from({ length: 32 }, () => Math.floor(Math.random() * 256));
+        const newRoot = [...MERKLE_ROOT];
         await program.methods
             .updateRoot(newRoot)
             .accounts({
