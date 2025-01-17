@@ -53,7 +53,7 @@ impl<'info> Claim<'info> {
 
         let input = hashv(&[&self.claimant.key.to_bytes(), &total_amount.to_be_bytes()]);
         require!(
-            self.verify_proof(input.to_bytes(), &proof),
+            self.verify_proof(&input.to_bytes(), &proof),
             ErrorCode::InvalidProof
         );
 
@@ -76,8 +76,9 @@ impl<'info> Claim<'info> {
         )
     }
 
-    fn verify_proof(&self, input: [u8; HASH_BYTES], proof: &Vec<[u8; HASH_BYTES]>) -> bool {
-        proof.iter().fold(input, |acc, sibling| {
+    fn verify_proof(&self, input: &[u8], proof: &Vec<[u8; HASH_BYTES]>) -> bool {
+        let double_hashing = hashv(&[input]).to_bytes();
+        proof.iter().fold(double_hashing, |acc, sibling| {
             if acc <= *sibling {
                 hashv(&[&acc, sibling]).to_bytes()
             } else {
