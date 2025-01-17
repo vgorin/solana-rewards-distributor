@@ -9,8 +9,8 @@ use anchor_spl::{
     token::{Token, TokenAccount},
 };
 
-use crate::state::distributor_config::DistributorConfig;
-use crate::{error::ErrorCode, state::claimed_rewards::ClaimedRewards};
+use crate::error::ErrorCode;
+use crate::state::{claimed_rewards::ClaimedRewards, distributor_config::DistributorConfig};
 
 #[derive(Accounts)]
 pub struct Claim<'info> {
