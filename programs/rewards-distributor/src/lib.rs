@@ -1,11 +1,20 @@
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::hash::HASH_BYTES;
+use solana_security_txt::security_txt;
 
 use instructions::*;
 
 mod error;
 mod instructions;
 mod state;
+
+security_txt! {
+    name: "Solana Rewards Distributor",
+    project_url: "https://enjoyoors.xyz/",
+    policy: "https://github.com/eq-lab/solana-rewards-distributor",
+    preferred_languages: "en",
+    source_code: "https://github.com/eq-lab/solana-rewards-distributor"
+}
 
 declare_id!("3UzMu6EhgnZMg95WpyDLA6JJPho2YEW7QF3sNcv4Zi8K");
 
