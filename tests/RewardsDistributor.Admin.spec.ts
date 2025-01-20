@@ -12,7 +12,13 @@ import {
     mintTokenTo,
     transferTokens,
 } from './shared/transactions';
-import { DISTRIBUTOR_CONFIG_SEED, ELIGIBLE_USER_AMOUNT, ErrorCode, MERKLE_ROOT } from './shared/consts';
+import {
+    DISTRIBUTOR_CONFIG_SEED,
+    ELIGIBLE_USER_AMOUNT,
+    ELIGIBLE_USER_PK,
+    ErrorCode,
+    MERKLE_ROOT,
+} from './shared/consts';
 
 describe('Rewards distributor Admin', () => {
     anchor.setProvider(anchor.AnchorProvider.env());
@@ -35,7 +41,7 @@ describe('Rewards distributor Admin', () => {
 
         mint = await createTokenMint(connection, admin);
         await initializeATA(anchor.getProvider(), admin, mint);
-        await mintTokenTo(connection, admin, mint, admin.publicKey, ELIGIBLE_USER_AMOUNT * 10);
+        await mintTokenTo(connection, admin, mint, admin.publicKey, ELIGIBLE_USER_AMOUNT * 2);
     });
 
     it('Initialize', async () => {
@@ -65,7 +71,7 @@ describe('Rewards distributor Admin', () => {
         const vault = await getAssociatedTokenAddress(mint, configPda, true);
         const balanceBefore = (await getAccount(connection, vault)).amount;
 
-        const transferAmount = ELIGIBLE_USER_AMOUNT * 10;
+        const transferAmount = ELIGIBLE_USER_AMOUNT * 2;
         await transferTokens(anchor.getProvider(), mint, admin, vault, transferAmount);
 
         const balanceAfter = (await getAccount(connection, vault)).amount;
@@ -87,6 +93,18 @@ describe('Rewards distributor Admin', () => {
         expect(configData.root).to.deep.eq(newRoot);
     });
 
+    it('Update root, SameValue', async () => {
+        const tx = program.methods
+            .updateRoot([...MERKLE_ROOT])
+            .accounts({
+                updater: updater.publicKey,
+            })
+            .signers([updater])
+            .rpc();
+
+        await expectRevert(tx, ErrorCode.SameValue);
+    });
+
     it('Update root, unauthorized', async () => {
         const newRoot = Array.from({ length: 32 }, () => Math.floor(Math.random() * 256));
         const tx = program.methods
@@ -100,8 +118,20 @@ describe('Rewards distributor Admin', () => {
         await expectRevert(tx, ErrorCode.Unauthorized);
     });
 
+    it('Set updater, SameValue', async () => {
+        const tx = program.methods
+            .setUpdater(updater.publicKey)
+            .accounts({
+                admin: admin.publicKey,
+            })
+            .signers([admin])
+            .rpc();
+
+        await expectRevert(tx, ErrorCode.SameValue);
+    });
+
     it('Set updater', async () => {
-        const newUpdater = Keypair.generate();
+        const newUpdater = Keypair.fromSecretKey(ELIGIBLE_USER_PK);
         await program.methods
             .setUpdater(newUpdater.publicKey)
             .accounts({
@@ -127,8 +157,21 @@ describe('Rewards distributor Admin', () => {
         await expectRevert(tx, ErrorCode.Unauthorized);
     });
 
+    it('Set admin, SameValue', async () => {
+        const tx = program.methods
+            .setAdmin(admin.publicKey)
+            .accounts({
+                admin: admin.publicKey,
+            })
+            .signers([admin])
+            .rpc();
+
+        await expectRevert(tx, ErrorCode.SameValue);
+    });
+
+
     it('Set admin', async () => {
-        const newAdmin = Keypair.generate();
+        const newAdmin = Keypair.fromSecretKey(ELIGIBLE_USER_PK);
         await program.methods
             .setAdmin(newAdmin.publicKey)
             .accounts({

@@ -13,6 +13,7 @@ import {
     ErrorCode,
     MERKLE_PROOF,
 } from './shared/consts';
+import { hashAirdropLeaf } from './shared/utils';
 
 describe('Rewards distributor Claim', () => {
     const connection = anchor.getProvider().connection;
@@ -53,7 +54,10 @@ describe('Rewards distributor Claim', () => {
         const userBalanceAfter = (await getAccount(connection, userATA)).amount;
         expect(userBalanceAfter - userBalanceBefore).to.be.eq(BigInt(ELIGIBLE_USER_AMOUNT));
 
-        const [claimedRewardsPda] = PublicKey.findProgramAddressSync([CLAIMED_REWARDS_SEED, user.publicKey.toBuffer()], program.programId);
+        const [claimedRewardsPda] = PublicKey.findProgramAddressSync(
+            [CLAIMED_REWARDS_SEED, user.publicKey.toBuffer()],
+            program.programId
+        );
         const claimedRewardsData = await claimedRewards.fetch(claimedRewardsPda);
         expect(claimedRewardsData.claimed.eq(new BN(ELIGIBLE_USER_AMOUNT))).to.be.true;
     });
@@ -69,5 +73,60 @@ describe('Rewards distributor Claim', () => {
             .rpc();
 
         await expectRevert(tx, ErrorCode.InvalidProof);
+    });
+
+    it('Claim, second one after root update', async () => {
+        const vault = await getAssociatedTokenAddress(mint, configPda, true);
+        const vaultBalanceBefore = (await getAccount(connection, vault)).amount;
+        const userBalanceBefore = (await getAccount(connection, userATA)).amount;
+
+        const updatedAmount = ELIGIBLE_USER_AMOUNT * 2;
+        const newRoot = hashAirdropLeaf(user.publicKey, updatedAmount);
+        await program.methods.updateRoot(newRoot).accounts({ updater: user.publicKey }).signers([user]).rpc();
+
+        await program.methods
+            .claim(new BN(updatedAmount), [])
+            .accounts({ to: userATA, claimant: user.publicKey })
+            .signers([user])
+            .rpc();
+
+        const expectedDelta = updatedAmount - ELIGIBLE_USER_AMOUNT;
+
+        const vaultBalanceAfter = (await getAccount(connection, vault)).amount;
+        expect(vaultBalanceBefore - vaultBalanceAfter).to.be.eq(BigInt(expectedDelta));
+
+        const userBalanceAfter = (await getAccount(connection, userATA)).amount;
+        expect(userBalanceAfter - userBalanceBefore).to.be.eq(BigInt(expectedDelta));
+
+        const [claimedRewardsPda] = PublicKey.findProgramAddressSync(
+            [CLAIMED_REWARDS_SEED, user.publicKey.toBuffer()],
+            program.programId
+        );
+        const claimedRewardsData = await claimedRewards.fetch(claimedRewardsPda);
+        expect(claimedRewardsData.claimed.eq(new BN(updatedAmount))).to.be.true;
+    });
+
+    it('Claim, AlreadyClaimed', async () => {
+        const claimTx = program.methods
+            .claim(new BN(ELIGIBLE_USER_AMOUNT * 2), [])
+            .accounts({ to: userATA, claimant: user.publicKey })
+            .signers([user])
+            .rpc();
+
+        await expectRevert(claimTx, ErrorCode.AlreadyClaimed);
+    });
+
+    it('Claim, InsufficientBalance', async () => {
+        const updatedAmount = ELIGIBLE_USER_AMOUNT * 3;
+        const newRoot = hashAirdropLeaf(user.publicKey, updatedAmount);
+        await program.methods.updateRoot(newRoot).accounts({ updater: user.publicKey }).signers([user]).rpc();
+
+        const claimTx = program.methods
+            .claim(new BN(ELIGIBLE_USER_AMOUNT * 3), [])
+            .accounts({ to: userATA, claimant: user.publicKey })
+            .signers([user])
+            .rpc();
+
+        await expectRevert(claimTx, ErrorCode.InsufficientBalance);
     });
 });
