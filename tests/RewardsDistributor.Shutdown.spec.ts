@@ -37,18 +37,18 @@ describe('Rewards distributor Shutdown', () => {
         expect(configData.shutdown).to.be.true;
     });
 
-    // it('Shutdown, already set', async () => {
-    //     const shutdownTx = program.methods
-    //         .shutdown()
-    //         .accounts({
-    //             admin: admin.publicKey,
-    //             to: adminATA,
-    //         })
-    //         .signers([admin])
-    //         .rpc();
+    it('Shutdown, already set', async () => {
+        const shutdownTx = program.methods
+            .shutdown()
+            .accounts({
+                admin: admin.publicKey,
+                to: adminATA,
+            })
+            .signers([admin])
+            .rpc();
 
-    //     await expectRevert(shutdownTx, ErrorCode.Shutdown);
-    // });
+        await expectRevert(shutdownTx, ErrorCode.Shutdown);
+    });
 
     it('Shutdown, claim fail', async () => {
         const claimTx = program.methods

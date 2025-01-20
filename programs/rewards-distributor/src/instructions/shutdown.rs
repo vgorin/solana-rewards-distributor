@@ -40,6 +40,7 @@ pub struct Shutdown<'info> {
 
 impl<'info> Shutdown<'info> {
     pub fn handle_shutdown(&mut self) -> Result<()> {
+        require!(!self.config.shutdown, ErrorCode::Shutdown);
         self.config.shutdown = true;
 
         let seeds = [DistributorConfig::SEED.as_ref(), &[self.config.bump]];
