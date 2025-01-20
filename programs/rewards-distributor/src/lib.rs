@@ -11,6 +11,7 @@ mod state;
 security_txt! {
     name: "Solana Rewards Distributor",
     project_url: "https://enjoyoors.xyz/",
+    contacts: "support@enjoyoors.xyz",
     policy: "https://github.com/eq-lab/solana-rewards-distributor",
     preferred_languages: "en",
     source_code: "https://github.com/eq-lab/solana-rewards-distributor"
