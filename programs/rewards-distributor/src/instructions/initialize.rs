@@ -25,7 +25,7 @@ pub struct Initialize<'info> {
     pub mint: Account<'info, Mint>,
 
     #[account(
-        init,
+        init_if_needed,
         associated_token::mint = mint,
         associated_token::authority = config,
         payer = admin,
