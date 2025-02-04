@@ -1,5 +1,12 @@
-import { PublicKey } from '@solana/web3.js';
-import { createHash, randomBytes } from 'crypto';
+import { Keypair, PublicKey } from '@solana/web3.js';
+import { createHash } from 'crypto';
+import fs from 'fs';
+import os from 'os';
+
+export function getLocalEnvSigner(): Keypair {
+    const keypairPath = `${os.homedir()}/.config/solana/id.json`;
+    return Keypair.fromSecretKey(new Uint8Array(JSON.parse(fs.readFileSync(keypairPath, 'utf-8'))));
+}
 
 export function hashAirdropLeaf(user: PublicKey, amount: number): Array<number> {
     const amountBuffer = Buffer.alloc(8);

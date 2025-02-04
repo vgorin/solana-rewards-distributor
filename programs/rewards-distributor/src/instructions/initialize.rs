@@ -7,7 +7,9 @@ use anchor_spl::{
     token::{Mint, Token, TokenAccount},
 };
 
-use crate::state::distributor_config::DistributorConfig;
+use crate::{
+    error::ErrorCode, program::RewardsDistributor, state::distributor_config::DistributorConfig,
+};
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {
@@ -33,6 +35,11 @@ pub struct Initialize<'info> {
     #[account(mut)]
     pub admin: Signer<'info>,
 
+    #[account(constraint = program_data.upgrade_authority_address == Some(admin.key()) @ ErrorCode::Unauthorized)]
+    pub program_data: Account<'info, ProgramData>,
+
+    #[account(constraint = program.programdata_address()? == Some(program_data.key()))]
+    pub program: Program<'info, RewardsDistributor>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,

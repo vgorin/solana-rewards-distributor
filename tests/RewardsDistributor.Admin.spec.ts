@@ -19,9 +19,10 @@ import {
     ErrorCode,
     MERKLE_ROOT,
 } from './shared/consts';
+import { getLocalEnvSigner } from './shared/utils';
 
 describe('Rewards distributor Admin', () => {
-    anchor.setProvider(anchor.AnchorProvider.env());
+    anchor.setProvider(anchor.AnchorProvider.local());
     const connection = anchor.getProvider().connection;
 
     const program = anchor.workspace.RewardsDistributor as Program<RewardsDistributor>;
@@ -29,7 +30,9 @@ describe('Rewards distributor Admin', () => {
     const config = program.account.distributorConfig;
     const [configPda] = PublicKey.findProgramAddressSync([DISTRIBUTOR_CONFIG_SEED], program.programId);
 
-    const admin = Keypair.generate();
+    const admin = getLocalEnvSigner();
+    expect(admin.publicKey).to.deep.eq(anchor.AnchorProvider.env().publicKey);
+
     const updater = Keypair.generate();
     const unauthorized = Keypair.generate();
     let mint: PublicKey;
@@ -45,11 +48,14 @@ describe('Rewards distributor Admin', () => {
     });
 
     it('Initialize', async () => {
+        const programAccountInfo = await connection.getAccountInfo(program.programId);
+        const programData = new PublicKey(programAccountInfo.data.subarray(4, 36));
         await program.methods
             .initialize(updater.publicKey)
             .accounts({
                 mint: mint,
                 admin: admin.publicKey,
+                programData: programData,
             })
             .signers([admin])
             .rpc();
@@ -168,7 +174,6 @@ describe('Rewards distributor Admin', () => {
 
         await expectRevert(tx, ErrorCode.SameValue);
     });
-
 
     it('Set admin', async () => {
         const newAdmin = Keypair.fromSecretKey(ELIGIBLE_USER_PK);
