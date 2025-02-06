@@ -16,7 +16,7 @@ Inspired by [Uniswap merkle distributor](https://github.com/Uniswap/merkle-distr
 ## Development Guide
 
 ### Requirements
-1. [Anchor](https://solana.com/docs/programs/anchors)
+1. [Anchor](https://www.anchor-lang.com/docs/installation)
 2. [Yarn](https://yarnpkg.com/getting-started/install)
 
 ### Install Dependencies
