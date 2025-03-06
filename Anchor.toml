@@ -5,7 +5,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-rewards_distributor = "3UzMu6EhgnZMg95WpyDLA6JJPho2YEW7QF3sNcv4Zi8K"
+rewards_distributor = "Cfq4kv5pJJiTjqRoYJeYC4kF46a2ZMtBxqPSxnDxt2Qf"
 
 [registry]
 url = "https://api.apr.dev"
@@ -14,8 +14,10 @@ url = "https://api.apr.dev"
 cluster = "Localnet"
 wallet = "~/.config/solana/id.json"
 
-[test]
-upgradeable = true
-
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.spec.ts"
+
+[test]
+startup_wait = 5000
+shutdown_wait = 2000
+upgradeable = true

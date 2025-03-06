@@ -17,7 +17,7 @@ security_txt! {
     source_code: "https://github.com/eq-lab/solana-rewards-distributor"
 }
 
-declare_id!("3UzMu6EhgnZMg95WpyDLA6JJPho2YEW7QF3sNcv4Zi8K");
+declare_id!("Cfq4kv5pJJiTjqRoYJeYC4kF46a2ZMtBxqPSxnDxt2Qf");
 
 #[program]
 pub mod rewards_distributor {
