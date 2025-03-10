@@ -65,7 +65,7 @@ describe('Rewards distributor Admin', () => {
 
     it('Update root', async () => {
         const newRoot = [...MERKLE_ROOT];
-        await distributor.updateRoot(newRoot, updater.publicKey).signAndSend(updater);
+        await distributor.updateRoot(Uint8Array.from(newRoot), updater.publicKey).signAndSend(updater);
 
         const configData = await distributor.getDistributorConfig();
 
@@ -74,7 +74,7 @@ describe('Rewards distributor Admin', () => {
 
     it('Update root, SameValue', async () => {
         await expectRevert(
-            distributor.updateRoot([...MERKLE_ROOT], updater.publicKey).signAndSend(updater),
+            distributor.updateRoot(Uint8Array.from([...MERKLE_ROOT]), updater.publicKey).signAndSend(updater),
             ErrorCode.SameValue
         );
     });
@@ -82,7 +82,7 @@ describe('Rewards distributor Admin', () => {
     it('Update root, unauthorized', async () => {
         const newRoot = Array.from({ length: 32 }, () => Math.floor(Math.random() * 256));
         await expectRevert(
-            distributor.updateRoot(newRoot, unauthorized.publicKey).signAndSend(unauthorized),
+            distributor.updateRoot(Uint8Array.from(newRoot), unauthorized.publicKey).signAndSend(unauthorized),
             ErrorCode.Unauthorized
         );
     });

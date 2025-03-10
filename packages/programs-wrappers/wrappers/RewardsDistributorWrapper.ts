@@ -59,13 +59,21 @@ export class RewardsDistributorWrapper {
         );
     }
 
-    public claim(claimant: PublicKey, toATA: PublicKey, totalAmount: bigint | BN, proof: number[][]): ContractCall {
+    public claim(claimant: PublicKey, toATA: PublicKey, totalAmount: bigint | BN, proof: Uint8Array[]): ContractCall {
         const totalAmountBn = new BN(totalAmount.toString());
         assertFitInU64(totalAmountBn, 'total amount');
 
         return this.createContractCall(
             'claim',
-            this.program.methods.claim(totalAmountBn, proof).accounts({ to: toATA, claimant })
+            this.program.methods
+                .claim(
+                    totalAmountBn,
+                    proof.map((x) => Array.from(x.values()))
+                )
+                .accounts({
+                    to: toATA,
+                    claimant,
+                })
         );
     }
 
@@ -81,8 +89,11 @@ export class RewardsDistributorWrapper {
         return this.createContractCall('shutdown', this.program.methods.shutdown().accounts({ admin, to: adminATA }));
     }
 
-    public updateRoot(newRoot: number[], updater: PublicKey): ContractCall {
-        return this.createContractCall('updateRoot', this.program.methods.updateRoot(newRoot).accounts({ updater }));
+    public updateRoot(newRoot: Uint8Array, updater: PublicKey): ContractCall {
+        return this.createContractCall(
+            'updateRoot',
+            this.program.methods.updateRoot(Array.from(newRoot.values())).accounts({ updater })
+        );
     }
 
     public getClaimedRewardsAddress(claimant: PublicKey): PublicKey {

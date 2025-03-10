@@ -13,6 +13,8 @@ describe('Rewards distributor Claim', () => {
 
     const distributor = new RewardsDistributorWrapper(anchor.getProvider());
 
+    const merkleProof = MERKLE_PROOF.map((x) => Uint8Array.from(x));
+
     const user = Keypair.fromSecretKey(ELIGIBLE_USER_PK);
     const userIneligible = Keypair.generate();
     let mint: PublicKey;
@@ -32,7 +34,7 @@ describe('Rewards distributor Claim', () => {
         const vaultBalanceBefore = (await getAccount(connection, vault)).amount;
         const userBalanceBefore = (await getAccount(connection, userATA)).amount;
 
-        await distributor.claim(user.publicKey, userATA, new BN(ELIGIBLE_USER_AMOUNT), MERKLE_PROOF).signAndSend(user);
+        await distributor.claim(user.publicKey, userATA, new BN(ELIGIBLE_USER_AMOUNT), merkleProof).signAndSend(user);
         const vaultBalanceAfter = (await getAccount(connection, vault)).amount;
         expect(vaultBalanceBefore - vaultBalanceAfter).to.be.eq(BigInt(ELIGIBLE_USER_AMOUNT));
 
@@ -50,7 +52,7 @@ describe('Rewards distributor Claim', () => {
                     userIneligible.publicKey,
                     await getAssociatedTokenAddress(mint, userIneligible.publicKey),
                     new BN(ELIGIBLE_USER_AMOUNT),
-                    MERKLE_PROOF
+                    merkleProof
                 )
                 .signAndSend(userIneligible),
             ErrorCode.InvalidProof
@@ -65,7 +67,7 @@ describe('Rewards distributor Claim', () => {
         const updatedAmount = ELIGIBLE_USER_AMOUNT * 2;
         const newRoot = hashAirdropLeaf(user.publicKey, updatedAmount);
 
-        await distributor.updateRoot(newRoot, user.publicKey).signAndSend(user);
+        await distributor.updateRoot(Uint8Array.from(newRoot), user.publicKey).signAndSend(user);
         await distributor.claim(user.publicKey, userATA, new BN(updatedAmount), []).signAndSend(user);
 
         const expectedDelta = updatedAmount - ELIGIBLE_USER_AMOUNT;
@@ -81,12 +83,6 @@ describe('Rewards distributor Claim', () => {
     });
 
     it('Claim, AlreadyClaimed', async () => {
-        // const claimTx = program.methods
-        //     .claim(new BN(ELIGIBLE_USER_AMOUNT * 2), [])
-        //     .accounts({ to: userATA, claimant: user.publicKey })
-        //     .signers([user])
-        //     .rpc();
-
         await expectRevert(
             distributor.claim(user.publicKey, userATA, new BN(ELIGIBLE_USER_AMOUNT * 2), []).signAndSend(user),
             ErrorCode.AlreadyClaimed
@@ -97,7 +93,7 @@ describe('Rewards distributor Claim', () => {
         const updatedAmount = ELIGIBLE_USER_AMOUNT * 3;
         const newRoot = hashAirdropLeaf(user.publicKey, updatedAmount);
 
-        await distributor.updateRoot(newRoot, user.publicKey).signAndSend(user);
+        await distributor.updateRoot(Uint8Array.from(newRoot), user.publicKey).signAndSend(user);
 
         await expectRevert(
             distributor.claim(user.publicKey, userATA, new BN(ELIGIBLE_USER_AMOUNT * 3), []).signAndSend(user),

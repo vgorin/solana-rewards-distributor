@@ -31,10 +31,17 @@ export const claimCommand: CommandModule = {
     },
 };
 
-function loadProofFromFile(args: ArgumentsCamelCase): number[][] {
+function loadProofFromFile(args: ArgumentsCamelCase): Uint8Array[] {
+    const result: Uint8Array[] = [];
     const proof = JSON.parse(fs.readFileSync(args[proofFileArg] as string, 'utf-8')) as number[][];
-    for (const hash of proof) {
+
+    for (const elem of proof) {
+        const hash = Uint8Array.from(elem);
+
         assertHash(hash);
+
+        result.push(hash);
     }
-    return proof;
+
+    return result;
 }

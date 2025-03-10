@@ -25,10 +25,10 @@ export const updateRootCommand: CommandModule = {
     },
 };
 
-function loadRootFromFile(args: ArgumentsCamelCase): number[] {
+function loadRootFromFile(args: ArgumentsCamelCase): Uint8Array {
     const filename = args[newRootFileArg] as string;
-    const root = JSON.parse(fs.readFileSync(filename, 'utf-8')) as number[];
-
+    const hash = JSON.parse(fs.readFileSync(filename, 'utf-8')) as number[];
+    const root = Uint8Array.from(hash);
     assertHash(root);
 
     return root;

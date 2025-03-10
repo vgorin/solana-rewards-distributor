@@ -22,14 +22,9 @@ export function addTokenMintOption(builder: yargs.Argv): yargs.Argv {
     });
 }
 
-export function assertHash(hash: number[]): void {
+export function assertHash(hash: Uint8Array): void {
     if (hash.length !== 32) {
         throw new Error(`Invalid hash u8 array size. Expected: 32, actual: ${hash.length}`);
-    }
-    for (const elem of hash) {
-        if (elem < 0 || elem >= 256) {
-            throw new Error(`Invalid hash u8 array value: '${elem}', expected: [0; 255]`);
-        }
     }
 }
 
