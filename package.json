@@ -1,8 +1,17 @@
 {
   "license": "GPL-3.0-or-later",
   "scripts": {
-    "lint": "prettier */*.js \"*/**/*{.js,.ts}\" -w && cargo fmt"
+    "sync": "anchor keys sync",
+    "build": "anchor build",
+    "cli": "ts-node packages/cli/src/index.ts",
+    "test": "anchor test",
+    "lint": "prettier */*.js \"*/**/*{.js,.ts}\" -w && cargo fmt",
+    "localnet": "solana-test-validator"
   },
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",
     "@solana/spl-token": "^0.4.9",
