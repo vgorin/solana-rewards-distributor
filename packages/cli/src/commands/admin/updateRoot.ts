@@ -10,7 +10,11 @@ export const updateRootCommand: CommandModule = {
     describe: 'Update RewardDistributor merkle tree root',
 
     builder: (builder) => {
-        return builder.option(newRootFileArg, { demandOption: true, type: 'string', description: 'Updater address' });
+        return builder.option(newRootFileArg, {
+            demandOption: true,
+            type: 'string',
+            description: 'Path to JSON file containing new root data',
+        });
     },
     handler: async (args): Promise<void> => {
         const distributor = CliContext.getRewardsDistributorWrapper();
