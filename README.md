@@ -45,7 +45,7 @@ To execute the test suites, run:
 anchor test
 ```
 
-Test scenarios are located in the `tests/*.spec.ts` files
+Test scenarios are located in the `packages/tests/*.spec.ts` files
 
 ## License
 
