@@ -59,6 +59,17 @@ To run localnet:
 yarn localnet
 ```
 
+### Deploy
+
+To use the program, regenerate its ID, rebuild, and deploy:
+
+```bash
+rm -rf target
+anchor keys sync
+anchor build
+anchor deploy --provider.cluster <localnet, devnet, testnet or mainnet-beta>
+```
+
 ### Initialize
 
 ```bash
