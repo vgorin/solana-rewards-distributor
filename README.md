@@ -106,11 +106,13 @@ yarn cli admin update-root \
   --new-root-file <filename>
 ```
 
+Example:
+
 ```bash
 yarn cli admin update-root \
   --private-key-file ~/.config/solana/id.json \
   --cluster localnet \
-  --new-root-file 'root.json'
+  --new-root-file 'example_data/merkle_root-example.json'
 ```
 
 ### Shutdown
@@ -121,6 +123,8 @@ yarn cli admin shutdown \
   --cluster <localnet, devnet, testnet or mainnet-beta> \
   --token-mint <token_mint_address>
 ```
+
+Example:
 
 ```bash
 yarn cli admin shutdown \
@@ -137,6 +141,16 @@ yarn cli user claim \
   --cluster <localnet, devnet, testnet or mainnet-beta> \
   --total-amount <amount> \
   --proof-file <filename>
+```
+
+Example:
+
+```bash
+yarn cli user claim \
+  --private-key-file example_data/eligible_user_pk-example.json \
+  --cluster localnet \
+  --total-amount 1234567890 \
+  --proof-file example_data/merkle_proof-example.json
 ```
 
 ## Read states
