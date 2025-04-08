@@ -59,6 +59,9 @@ To run localnet:
 yarn localnet
 ```
 
+
+## Admin Actions
+
 ### Initialize
 
 ```bash
@@ -129,6 +132,8 @@ yarn cli admin shutdown \
   --token-mint '9567hvuTyD6YCm5y3g8P1xCgfg8vh12nETfcfkWWANsy'
 ```
 
+## User Actions
+
 ### Claim
 
 ```bash
@@ -156,4 +161,42 @@ yarn cli read claimed-rewards \
   --private-key-file <filename> \
   --cluster <localnet, devnet, testnet or mainnet-beta> \
   --claimant <claimant_address>
+```
+
+## Generate Merkle Tree (Root + Proofs)
+
+### Generate a test (address, balance) dataset
+
+The test generated dataset can be used as a template to create a real one.
+
+```bash
+yarn cli merkle-tree generate-dataset \
+  --size <dataset size, number> \
+  --output-dataset-file <path to CSV data file to write dataset to>
+```
+
+Example:
+
+```bash
+yarn cli merkle-tree generate-dataset \
+  --size 33 \
+  --output-dataset-file example_data/dataset_example.csv
+```
+
+### Generate Merkle root and proofs
+
+```bash
+yarn cli merkle-tree generate-merkle-tree \
+  --input-dataset-file <input CSV file path containing an airdrop dataset> \
+  --output-merkle-root-file <output JSON file path to write Merkle root to> \
+  --output-merkle-proof-folder <output folder to write Merkle proof JSON file to>
+```
+
+Example:
+
+```bash
+yarn cli merkle-tree generate-merkle-tree \
+  --input-dataset-file example_data/dataset_example.csv \
+  --output-merkle-root-file example_data/merkle_root-example.json \
+  --output-merkle-proof-folder example_data/merkle_proofs_example
 ```
