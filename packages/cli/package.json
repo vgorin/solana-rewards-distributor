@@ -11,6 +11,8 @@
         "@solana/spl-token": "^0.4.9",
         "@solana/web3.js": "^1.95.4",
         "@marinade.finance/spl-governance": "^0.3.25",
+        "bs58": "^6.0.0",
+        "merkletreejs": "^0.5.1",
         "yargs": "^17.7.2"
     },
     "devDependencies": {

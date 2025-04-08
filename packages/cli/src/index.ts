@@ -5,6 +5,7 @@ import { userCommandsBuilder } from './commands/user';
 import { CliContext, TransactionMode } from './context';
 import { readKeypairFromFile } from './utils';
 import { readCommandsBuilder } from './commands/read-only';
+import { merkleTreeCommandsBuilder } from './commands/merkle-tree';
 
 const modeArg = 'mode';
 const privateKeyFileArg = 'private-key-file';
@@ -19,6 +20,7 @@ async function main(): Promise<void> {
         .command('admin', 'Admin actions', adminCommandsBuilder)
         .command('user', 'User actions', userCommandsBuilder)
         .command('read', 'Read actions', readCommandsBuilder)
+        .command('merkle-tree', 'Merkle tree actions', merkleTreeCommandsBuilder)
         // common args
         .option(modeArg, {
             type: 'string',
