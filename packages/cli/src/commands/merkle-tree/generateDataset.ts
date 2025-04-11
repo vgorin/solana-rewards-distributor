@@ -1,5 +1,8 @@
 import { CommandModule } from 'yargs';
+import { MerkleTree } from 'merkletreejs';
 import fs from 'node:fs';
+import path from 'path';
+import { Keypair } from "@solana/web3.js";
 
 const sizeArg = 'size';
 const outputDatasetFileArg = 'output-dataset-file';
@@ -26,7 +29,11 @@ export const generateDatasetCommand: CommandModule = {
         const outputDatasetFilePath = args[outputDatasetFileArg] as string;
 
         const csvContent = generateSolanaAddressBalancesCSV(size);
+
+        // Create output directory if it doesn't exist
+        fs.mkdirSync(path.dirname(outputDatasetFilePath), { recursive: true });
         fs.writeFileSync(outputDatasetFilePath, csvContent, 'utf8');
+
         console.log(`Successfully wrote ${size} addresses and balances to CSV file ${outputDatasetFilePath}`);
     },
 };
@@ -44,12 +51,7 @@ function generateSolanaAddressBalancesCSV(n: number) {
 }
 
 function generateSolanaAddress() {
-    const characters = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-    let address = '';
-    for (let i = 0; i < 44; i++) {
-        address += characters.charAt(Math.floor(Math.random() * characters.length));
-    }
-    return address;
+    return Keypair.generate().publicKey.toBase58();
 }
 
 function generateSafeBalance() {

@@ -1,9 +1,10 @@
-import {CommandModule} from 'yargs';
+import { CommandModule } from 'yargs';
 import { MerkleTree } from 'merkletreejs';
 import { createHash } from 'crypto';
 import bs58 from 'bs58';
 import fs from 'node:fs';
 import path from 'path';
+import { PublicKey } from "@solana/web3.js";
 
 const inputDatasetFileArg = 'input-dataset-file';
 const outputMerkleRootFileArg = 'output-merkle-root-file';
@@ -80,13 +81,48 @@ function readDatasetFile(datasetFilePath: string): DatasetRecord[] {
     const dataRows = lines.slice(1);
 
     if (header.length !== 2 || header[0] !== 'Solana Address' || header[1] !== 'Lamports Balance') {
-        throw 'Invalid CSV header format.';
+        throw new Error('Invalid CSV header format.');
     }
 
-    return dataRows.map(row => {
-        const [SolanaAddress, LamportsBalance] = row.split(',');
-        return {SolanaAddress: SolanaAddress.trim(), LamportsBalance: LamportsBalance.trim()};
-    });
+    if (dataRows.length === 0) {
+        throw new Error('Dataset is empty.');
+    }
+
+    return dataRows.map(parseDatasetRow);
+}
+
+function parseDatasetRow(row: string): DatasetRecord {
+    // Validate CSV row format
+    const parts = row.split(',');
+    if (parts.length !== 2) {
+        throw new Error(`Invalid CSV row format: ${row}`);
+    }
+
+    // Check values are not empty
+    const [address, balance] = row.split(',').map(e => e.trim());
+    if(address === '') {
+        throw new Error("Empty address");
+    }
+    if(balance === '') {
+        throw new Error("Empty balance");
+    }
+
+    // Validate Solana address format
+    try {
+        new PublicKey(address);
+    }
+    catch (e) {
+        throw new Error(`Invalid Solana address format: ${address}. Valid Solana address expected.`);
+    }
+    // Validate balance is a valid Integer
+    try {
+        BigInt(balance);
+    }
+    catch (e) {
+        throw new Error(`Invalid balance format: ${balance}. Valid integer number expected.`);
+    }
+
+    return {SolanaAddress: address, LamportsBalance: balance};
 }
 
 function generateMerkleData(dataset: DatasetRecord[]): { merkleRoot: Buffer | null; merkleProofs: Buffer[][] } {
